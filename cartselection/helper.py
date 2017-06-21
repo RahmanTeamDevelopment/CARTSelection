@@ -116,10 +116,10 @@ def get_nms(appris_principal, missing, log, hgncid):
     return nms
 
 
-def check_nms_in_refseq_db(refseq, nms, missing, log, hgncid):
+def check_nms_in_refseq_db(refseq_db, nms, missing, log, hgncid):
     """Get NMs that are in the RefSeq db"""
 
-    nms_in_refseq = [id for id in nms if id in refseq]
+    nms_in_refseq = [id for id in nms if refseq_db.contains(id)]
     if len(nms_in_refseq) == 0:
         to_missing_list(missing, log, hgncid, 'not_in_RefSeq', 'None of the APPRIS principal NMs for this gene are found in RefSeq db; gene added to Missing List')
         return
@@ -140,7 +140,7 @@ def create_transcript_objects(refseq_db, nms_in_refseq):
 def get_transcripts_with_consistent_hgncid(transcripts, hgncid, missing, log):
     """Get only transcripts that have consistent HGNC ID"""
 
-    transcripts = [t for t in transcripts if t.gene == hgncid]
+    transcripts = [t for t in transcripts if t.hgnc_id == hgncid]
     if len(transcripts) == 0:
         to_missing_list(missing, log, hgncid, 'RefSeq_gene_mismatch', 'All APPRIS principal NMs that are present in RefSeq db have discrepant HGNC:ID; gene added to Missing List')
         return
