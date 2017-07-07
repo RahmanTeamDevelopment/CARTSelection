@@ -1,5 +1,5 @@
 import os
-from utils.transcripts import TranscriptDB
+from tgmi.transcripts import Transcript, TranscriptDB
 import utr
 
 
@@ -19,11 +19,8 @@ def read_excluded_transcripts(fn):
 def readInputData(options):
     """Read input datasets"""
 
-    # Script dir
-    scriptdir = os.path.dirname(os.path.realpath(__file__))
-
     # Read in gene name dictionaries
-    gene_dict = read_gene_dict(scriptdir + '/hgnc_biomart-05052017.txt')
+    gene_dict = read_gene_dict(options.genes)
 
     # Read in APPRIS data
     appris, appris_principal = read_appris_file(options.appr)
@@ -229,7 +226,7 @@ def read_refseqscan_output(fn):
         line = line.strip()
         if line == '' or line.startswith('#'): continue
         cols = line.split()
-        ret[cols[0]] = cols[3]
+        ret[cols[0]] = cols[2]
     return ret
 
 
@@ -248,3 +245,68 @@ def read_gene_dict(fn):
             else: ncbi = x
         if ncbi != '': ret_NCBIGeneID[hgnc] = ncbi
     return ret_NCBIGeneID
+
+
+
+#####################################################################
+
+
+def split_transcript_exons(transcript):
+    cds_exons = []
+    utr5_exons = []
+    utr3_exons = []
+
+
+    if transcript.strand == '+':
+
+        for e in transcript.exons:
+
+            if e.end - 1 < transcript.coding_start:
+                utr5_exons.append([e.start, e.end])
+
+            elif e.start > transcript.coding_end:
+                utr3_exons.append([e.start, e.end])
+
+            elif e.start < transcript.coding_start and transcript.coding_start <= e.end -1 <= transcript.coding_end:
+                utr5_exons.append([e.start, transcript.coding_start - 1])
+                cds_exons.append([transcript.coding_start, e.end])
+
+            elif transcript.coding_start <= e.start <= transcript.coding_end and transcript.coding_end < e.end:
+                cds_exons.append([e.start, transcript.coding_end])
+                utr3_exons.append([transcript.coding_end + 1, e.end])
+
+            elif transcript.coding_start <= e.start <= transcript.coding_end and transcript.coding_start <= e.end <= transcript.coding_end:
+                cds_exons.append([e.start,e.end])
+
+            elif e.start < transcript.coding_start and transcript.coding_end < e.end:
+                utr5_exons.append([e.start, transcript.coding_start - 1])
+                cds_exons.append([transcript.coding_start, transcript.coding_end])
+                utr3_exons.append([transcript.coding_end + 1, e.end])
+
+
+
+
+    else:
+
+        for e in transcript.exons:
+            if transcript.cds[0] < e[0]:
+                utr5_exons.append(e)
+
+            elif e[1] < transcript.cds[1]:
+                utr3_exons.append(e)
+
+            elif e[0] < transcript.cds[1] and transcript.cds[1] <= e[1] <= transcript.cds[0]:
+                utr3_exons.append([e[0], transcript.cds[1] - 1])
+                cds_exons.append([transcript.cds[1], e[1]])
+
+            elif transcript.cds[1] <= e[0] <= transcript.cds[0] and transcript.cds[0] < e[1]:
+                cds_exons.append([e[0], transcript.cds[0]])
+                utr5_exons.append([transcript.cds[0] + 1, e[1]])
+
+            elif transcript.cds[1] <= e[0] <= transcript.cds[0] and transcript.cds[1] <= e[1] <= transcript.cds[0]:
+                cds_exons.append(e)
+
+            elif e[0] < transcript.cds[1] and transcript.cds[0] < e[1]:
+                utr3_exons.append([e[0], transcript.cds[1] - 1])
+                cds_exons.append([transcript.cds[1], transcript.cds[0]])
+                utr5_exons.append([transcript.cds[0] + 1, e[1]])
