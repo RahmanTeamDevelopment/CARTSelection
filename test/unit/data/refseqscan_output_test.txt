@@ -1,0 +1,5 @@
+#Created: 26-06-2017; Reference genome: /Users/munz/root/work/data/genomes/GRCh37/human_g1k_v37.fasta
+#ID	VERSION	DIFFS
+NM_001005484	1	.
+NM_152486	2	c.1027T>C
+NM_015658	3	c.898A>G,c.1182T>C

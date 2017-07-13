@@ -1,0 +1,4 @@
+#ID	Reason
+NM_000247	no_mapping
+NM_000348	incorrect_cds_length
+NM_000451	multiple_mapping
