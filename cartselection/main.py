@@ -57,7 +57,7 @@ def get_appris_principal_isoforms(gene_dict, appris, hgncid, missing, log):
     """Get APPRIS PRINCIPAL isoforms"""
 
     # Translate HGNC ID to NCBI gene ID
-    ncbi_geneid = helper.translate_gene_ids(gene_dict, hgncid, missing, log)
+    ncbi_geneid = helper.translate_gene_id(gene_dict, hgncid, missing, log)
     if ncbi_geneid is None:
         return
 

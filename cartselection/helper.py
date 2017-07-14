@@ -81,7 +81,7 @@ def to_missing_list(missing, log, hgncid, missing_msg, log_msg):
     log.write(log_msg + '\n')
 
 
-def translate_gene_ids(gene_dict, hgncid, missing, log):
+def translate_gene_id(gene_dict, hgncid, missing, log):
     """Translate HGNC ID to NCBI ID"""
 
     ncbi_geneid = gene_dict.get(hgncid)
@@ -192,11 +192,16 @@ def all_have_same_cds(transcripts):
 def same_cds(transcript1, transcript2):
     """Check if two transcripts have the same CDS (same CDS exon boundaries)"""
 
-    if len(transcript1.cds_exons) != len(transcript2.cds_exons): return False
-    for i in range(len(transcript1.cds_exons)):
-        exon1 = transcript1.cds_exons[i]
-        exon2 = transcript2.cds_exons[i]
-        if exon1[0] != exon2[0] or exon1[1] != exon2[1]: return False
+    cds_exons1 = transcript1.cds_regions()
+    cds_exons2 = transcript2.cds_regions()
+
+    if len(cds_exons1) != len(cds_exons2):
+        return False
+    for i in range(len(cds_exons1)):
+        exon1 = cds_exons1[i]
+        exon2 = cds_exons2[i]
+        if exon1[0] != exon2[0] or exon1[1] != exon2[1]:
+            return False
     return True
 
 
@@ -207,12 +212,16 @@ def read_appris_file(fn):
     ret_principal = dict()
     for line in open(fn):
         line = line.strip()
-        if line == '' or line.startswith('#'): continue
+        if line == '' or line.startswith('#'):
+            continue
         cols = line.split()
-        if 'PRINCIPAL' not in cols[4]: continue
-        if cols[1] not in ret: ret[cols[1]] = []
+        if 'PRINCIPAL' not in cols[4]:
+            continue
+        if cols[1] not in ret:
+            ret[cols[1]] = []
         id = cols[2]
-        if '.' in id: id = id[:id.find('.')]
+        if '.' in id:
+            id = id[:id.find('.')]
         ret[cols[1]].append(id)
         ret_principal[id] = cols[4]
     return ret, ret_principal
@@ -224,7 +233,8 @@ def read_refseqscan_output(fn):
     ret = dict()
     for line in open(fn):
         line = line.strip()
-        if line == '' or line.startswith('#'): continue
+        if line == '' or line.startswith('#'):
+            continue
         cols = line.split()
         ret[cols[0]] = cols[2]
     return ret
@@ -236,77 +246,16 @@ def read_gene_dict(fn):
     ret_NCBIGeneID = dict()
     for line in open(fn):
         line = line.strip()
-        if line == '' or line.startswith('#'): continue
+        if line == '' or line.startswith('#') or line.startswith('HGNC ID'):
+            continue
         cols = line.split()
         hgnc = ncbi = ''
         for x in cols:
             x = x.strip()
-            if x.startswith('HGNC:'): hgnc = x
-            else: ncbi = x
-        if ncbi != '': ret_NCBIGeneID[hgnc] = ncbi
+            if x.startswith('HGNC:'):
+                hgnc = x
+            else:
+                ncbi = x
+        if ncbi != '':
+            ret_NCBIGeneID[hgnc] = ncbi
     return ret_NCBIGeneID
-
-
-
-#####################################################################
-
-
-def split_transcript_exons(transcript):
-    cds_exons = []
-    utr5_exons = []
-    utr3_exons = []
-
-
-    if transcript.strand == '+':
-
-        for e in transcript.exons:
-
-            if e.end - 1 < transcript.coding_start:
-                utr5_exons.append([e.start, e.end])
-
-            elif e.start > transcript.coding_end:
-                utr3_exons.append([e.start, e.end])
-
-            elif e.start < transcript.coding_start and transcript.coding_start <= e.end -1 <= transcript.coding_end:
-                utr5_exons.append([e.start, transcript.coding_start - 1])
-                cds_exons.append([transcript.coding_start, e.end])
-
-            elif transcript.coding_start <= e.start <= transcript.coding_end and transcript.coding_end < e.end:
-                cds_exons.append([e.start, transcript.coding_end])
-                utr3_exons.append([transcript.coding_end + 1, e.end])
-
-            elif transcript.coding_start <= e.start <= transcript.coding_end and transcript.coding_start <= e.end <= transcript.coding_end:
-                cds_exons.append([e.start,e.end])
-
-            elif e.start < transcript.coding_start and transcript.coding_end < e.end:
-                utr5_exons.append([e.start, transcript.coding_start - 1])
-                cds_exons.append([transcript.coding_start, transcript.coding_end])
-                utr3_exons.append([transcript.coding_end + 1, e.end])
-
-
-
-
-    else:
-
-        for e in transcript.exons:
-            if transcript.cds[0] < e[0]:
-                utr5_exons.append(e)
-
-            elif e[1] < transcript.cds[1]:
-                utr3_exons.append(e)
-
-            elif e[0] < transcript.cds[1] and transcript.cds[1] <= e[1] <= transcript.cds[0]:
-                utr3_exons.append([e[0], transcript.cds[1] - 1])
-                cds_exons.append([transcript.cds[1], e[1]])
-
-            elif transcript.cds[1] <= e[0] <= transcript.cds[0] and transcript.cds[0] < e[1]:
-                cds_exons.append([e[0], transcript.cds[0]])
-                utr5_exons.append([transcript.cds[0] + 1, e[1]])
-
-            elif transcript.cds[1] <= e[0] <= transcript.cds[0] and transcript.cds[1] <= e[1] <= transcript.cds[0]:
-                cds_exons.append(e)
-
-            elif e[0] < transcript.cds[1] and transcript.cds[0] < e[1]:
-                utr3_exons.append([e[0], transcript.cds[1] - 1])
-                cds_exons.append([transcript.cds[1], transcript.cds[0]])
-                utr5_exons.append([transcript.cds[0] + 1, e[1]])

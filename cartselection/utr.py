@@ -4,10 +4,22 @@ import sys
 def utr_selection(transcripts, log):
     """UTR selection function"""
 
+    tmp = []
+    for t in transcripts:
+        t.utr5_exons = t.utr5_regions()
+        t.utr3_exons = t.utr3_regions()
+        t.utr5_start = t.start if t.strand == '+' else t.end - 1
+        t.utr3_end = t.end - 1 if t.start == '+' else t.start
+        t.utr5_exonic_content_length = sum([e[1] - e[0] for e in t.utr5_exons])
+        t.utr3_exonic_content_length = sum([e[1] - e[0] for e in t.utr3_exons])
+        t.utr_ends = [t.utr5_start, t.utr3_end]
+        tmp.append(t)
+    transcripts = tmp
+
     log.write('\nUTR criteria applied to the following transcripts:\n')
     for t in transcripts:
         log.write('- '+t.id+'\n')
-        log.write('  ' + str(t.strand) +'; UTR5 exons: ' + str(len(t.utr5_exons)) +'; UTR5 start: ' + str(t.utr5_start()) + '; UTR5 length: ' + str(t.utr5_exonic_content_length()) + '; UTR3 end: ' + str(t.utr3_end()) + '; UTR3 length: ' + str(t.utr3_exonic_content_length()) + '\n')
+        log.write('  ' + str(t.strand) +'; UTR5 exons: ' + str(len(t.utr5_exons)) +'; UTR5 start: ' + str(t.utr5_start) + '; UTR5 length: ' + str(t.utr5_exonic_content_length) + '; UTR3 end: ' + str(t.utr3_end) + '; UTR3 length: ' + str(t.utr3_exonic_content_length) + '\n')
     log.write('\nUTR criteria selection steps:\n')
 
     dtypes = []
@@ -95,15 +107,15 @@ def analyse_difference_type_UTR_ends(transcripts, log):
     """Analyse difference type UTR ends"""
 
     # Check if there is difference in the UTR ends between any transcripts
-    diff_UTR_ends = False
-    ue = transcripts[0].UTR_ends()
+    diff_utr_ends = False
+    ue = transcripts[0].utr_ends
     for i in range(1, len(transcripts)):
-        if not transcripts[i].UTR_ends() == ue:
-            diff_UTR_ends = True
+        if not transcripts[i].utr_ends == ue:
+            diff_utr_ends = True
             break
 
     # Filtering
-    if diff_UTR_ends:
+    if diff_utr_ends:
 
         log.write(' * Difference type: UTR_ends\n')
 
@@ -198,10 +210,10 @@ def select_largest_5prime_footprint(transcripts):
     """Select transcript(s) with largest 5' footprint"""
 
     ret = [transcripts[0]]
-    furthest = transcripts[0].utr5_start()
+    furthest = transcripts[0].utr5_start
     for i in range(1, len(transcripts)):
         t = transcripts[i]
-        utr5footprint = t.utr5_start()
+        utr5footprint = t.utr5_start
         if utr5footprint == furthest: ret.append(t)
         elif (t.strand == 1 and utr5footprint < furthest) or (t.strand == -1 and utr5footprint > furthest):
             furthest = utr5footprint
@@ -212,10 +224,10 @@ def select_largest_5prime_footprint(transcripts):
 def select_largest_3prime_footprint(transcripts):
     """Select transcript(s) with largest 3' footprint"""
     ret = [transcripts[0]]
-    furthest = transcripts[0].utr3_end()
+    furthest = transcripts[0].utr3_end
     for i in range(1, len(transcripts)):
         t = transcripts[i]
-        utr3footprint = t.utr3_end()
+        utr3footprint = t.utr3_end
         if utr3footprint == furthest: ret.append(t)
         elif (t.strand == 1 and utr3footprint > furthest) or (t.strand == -1 and utr3footprint < furthest):
             furthest = utr3footprint
@@ -227,10 +239,10 @@ def select_longest_utr5_exonic_content(transcripts):
     """Select transcript(s) with longest UTR5 exonic content"""
 
     ret = [transcripts[0]]
-    longest = transcripts[0].utr5_exonic_content_length()
+    longest = transcripts[0].utr5_exonic_content_length
     for i in range(1, len(transcripts)):
         t = transcripts[i]
-        exonic_content_length = t.utr5_exonic_content_length()
+        exonic_content_length = t.utr5_exonic_content_length
         if exonic_content_length == longest: ret.append(t)
         if exonic_content_length > longest:
             longest = exonic_content_length
@@ -242,10 +254,10 @@ def select_longest_utr3_exonic_content(transcripts):
     """Select transcript(s) with longest UTR3 exonic content"""
 
     ret = [transcripts[0]]
-    longest = transcripts[0].utr3_exonic_content_length()
+    longest = transcripts[0].utr3_exonic_content_length
     for i in range(1, len(transcripts)):
         t = transcripts[i]
-        exonic_content_length = t.utr3_exonic_content_length()
+        exonic_content_length = t.utr3_exonic_content_length
         if exonic_content_length == longest: ret.append(t)
         if exonic_content_length > longest:
             longest = exonic_content_length
