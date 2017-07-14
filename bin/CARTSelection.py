@@ -14,7 +14,7 @@ def print_info(options):
     print 'Gene ID dictionary file:    ' + options.genes + '\n'
 
 # Version
-ver = 'v1.5.0'
+ver = 'v1.6.0'
 
 # Script dir
 scriptdir = os.path.dirname(os.path.realpath(__file__))

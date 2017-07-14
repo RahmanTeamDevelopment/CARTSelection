@@ -2,9 +2,9 @@ from setuptools import setup
 
 setup(
     name = 'CARTSelection',
-    version = '1.5.0',
-    description = '...',
-    url = '...',
+    version = '1.6.0',
+    description = 'CARTSelection tool',
+    url = 'https://github.com/RahmanTeamDevelopment/CARTSelection',
     author = 'Marton Munz',
     author_email = 'munzmarci@gmail.com',
     license = 'MIT',
