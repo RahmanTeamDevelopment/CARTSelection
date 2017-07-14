@@ -152,15 +152,19 @@ def output_single_transcript(transcripts, refseqscan, appris_principal, selected
     log.write('\nSELECTED TRANSCRIPT: ' + transcripts[0].id + ' (The only transcript to select)\n')
     diff = refseqscan[transcripts[0].id]
 
-    cigar_info = []
-    tmp = transcripts[0].exon_cigars.split(',')
-    for i in range(len(tmp)):
-        if 'X' in tmp[i] or 'I' in tmp[i] or 'D' in tmp[i]:
-            cigar_info.append('Ex{}:{}'.format(i+1,tmp[i]))
+    if transcripts[0].exon_cigars == '.':
+        cigar_str = '.'
+    else:
+        cigar_info = []
+        tmp = transcripts[0].exon_cigars.split(',')
+        for i in range(len(tmp)):
+            if 'X' in tmp[i] or 'I' in tmp[i] or 'D' in tmp[i]:
+                cigar_info.append('Ex{}:{}'.format(i + 1, tmp[i]))
+        cigar_str = ','.join(cigar_info) if len(cigar_info) > 0 else '.'
 
     cid = 'CART' + '0' * (5 - len(str(cartid))) + str(cartid)
     log.write('Added as ' + cid + '\n')
-    selected.write('\t'.join([hgncid, cid, transcripts[0].id, transcripts[0].version, appris_principal[transcripts[0].id], 'not_required', 'not_required', diff, ','.join(cigar_info)]) + '\n')
+    selected.write('\t'.join([hgncid, cid, transcripts[0].id, transcripts[0].version, appris_principal[transcripts[0].id], 'not_required', 'not_required', diff, cigar_str]) + '\n')
 
 
 def select_from_multiple_candidates(transcripts, refseqscan, appris_principal, selected, missing, log, hgncid, cartid):
@@ -178,11 +182,15 @@ def select_from_multiple_candidates(transcripts, refseqscan, appris_principal, s
 
     diff = refseqscan[sel.id]
 
-    cigar_info = []
-    tmp = sel.exon_cigars.split(',')
-    for i in range(len(tmp)):
-        if 'X' in tmp[i] or 'I' in tmp[i] or 'D' in tmp[i]:
-            cigar_info.append('Ex{}:{}'.format(i + 1, tmp[i]))
+    if sel.exon_cigars == '.':
+        cigar_str = '.'
+    else:
+        cigar_info = []
+        tmp = sel.exon_cigars.split(',')
+        for i in range(len(tmp)):
+            if 'X' in tmp[i] or 'I' in tmp[i] or 'D' in tmp[i]:
+                cigar_info.append('Ex{}:{}'.format(i + 1, tmp[i]))
+        cigar_str = ','.join(cigar_info) if len(cigar_info) > 0 else '.'
 
 
     log.write('SELECTED TRANSCRIPT: ' + sel.id + ' (Selected by UTR criteria)\n')
@@ -190,7 +198,7 @@ def select_from_multiple_candidates(transcripts, refseqscan, appris_principal, s
     cid = 'CART' + '0' * (5 - len(str(cartid))) + str(cartid)
     log.write('Added as ' + cid + '\n')
 
-    selected.write('\t'.join([hgncid, cid, sel.id, sel.version, appris_principal[sel.id], differenceType, decisiveCriteria, diff, ','.join(cigar_info)]) + '\n')
+    selected.write('\t'.join([hgncid, cid, sel.id, sel.version, appris_principal[sel.id], differenceType, decisiveCriteria, diff, cigar_str]) + '\n')
 
     return cartid
 
