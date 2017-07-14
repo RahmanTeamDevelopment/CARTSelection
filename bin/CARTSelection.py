@@ -10,9 +10,8 @@ def print_info(options):
     print '\nInput file (HGNC IDs):      ' + options.hgnc
     print 'APPRIS RefSeq file:         ' + options.appr
     print 'RefSeq transcript db file:  ' + options.refsdb
-    print 'RefSeqScan output file:    ' + options.refss
-    print 'Gene ID dictionary file:   ' + options.genes
-    print 'Reference genome build:     ' + options.build + '\n'
+    print 'RefSeqScan output file:     ' + options.refss
+    print 'Gene ID dictionary file:    ' + options.genes + '\n'
 
 # Version
 ver = 'v1.5.0'
@@ -27,7 +26,6 @@ parser.add_option("--hgnc", dest='hgnc', action='store', help="Input file contai
 parser.add_option("--appr", dest='appr', action='store', help="APPRIS file")
 parser.add_option("--refsdb", dest='refsdb', action='store', help="RefSeq transcript database file")
 parser.add_option("--refss", dest='refss', action='store', help="refseq_scan output file")
-parser.add_option("--build", dest='build', action='store', help="Genome build (GRCh37 or GRCh38)")
 parser.add_option("--genes", dest='genes', action='store', help="Gene ID dictionary file")
 parser.add_option("--out", dest='out', action='store', help="Output file name")
 (options, args) = parser.parse_args()
