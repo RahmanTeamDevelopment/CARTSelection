@@ -2,9 +2,10 @@ import uuid
 import os
 from unittest import TestCase
 from cartselection import helper
-
+from tgmi.transcripts import Transcript
 
 class TestHelper(TestCase):
+
 
     def test_read_excluded_transcripts(self):
         expected = {
@@ -13,6 +14,7 @@ class TestHelper(TestCase):
             'NM_000451': 'multiple_mapping'
         }
         assert helper.read_excluded_transcripts('test/unit/data/excluded_test.txt') == expected
+
 
     def test_read_appris_file(self):
         result, result_principal = helper.read_appris_file('test/unit/data/appris_test.txt')
@@ -27,6 +29,7 @@ class TestHelper(TestCase):
         assert result_principal['XM_011528293'] == 'PRINCIPAL:1'
         assert result_principal['NM_024552'] == 'PRINCIPAL:1'
         assert result_principal['XM_011528294'] == 'PRINCIPAL:1'
+
 
     def test_read_refseqscan_output(self):
         expected = {
@@ -43,6 +46,7 @@ class TestHelper(TestCase):
             'HGNC:1101': '675'
         }
         assert helper.read_gene_dict('test/unit/data/genenames_test.txt') == expected
+
 
     def test_translate_gene_id(self):
         gene_dict = helper.read_gene_dict('test/unit/data/genenames_test.txt')
@@ -68,6 +72,7 @@ class TestHelper(TestCase):
         os.remove(prefix + '_missing.txt')
         os.remove(prefix + '_log.txt')
 
+
     def test_get_appris_principal_isoforms_for_gene(self):
         prefix = str(uuid.uuid4())
         missing = open(prefix + '_missing.txt', 'w')
@@ -91,6 +96,7 @@ class TestHelper(TestCase):
 
         os.remove(prefix + '_missing.txt')
         os.remove(prefix + '_log.txt')
+
 
     def test_get_nms(self):
         prefix = str(uuid.uuid4())
@@ -117,14 +123,53 @@ class TestHelper(TestCase):
         os.remove(prefix + '_missing.txt')
         os.remove(prefix + '_log.txt')
 
+
     def test_same_cds(self):
-        pass
+        t1 = Transcript()
+        record = {'strand': '+', 'exons': '10000-20000,30000-40000,50000-60000', 'coding_start': '12000', 'coding_end': '53000'}
+        t1.read_from_database_record(record)
+
+        t2 = Transcript()
+        record = {'strand': '+', 'exons': '9000-20000,30000-40000,50000-68000', 'coding_start': '12000', 'coding_end': '53000'}
+        t2.read_from_database_record(record)
+
+        t3 = Transcript()
+        record = {'strand': '+', 'exons': '3000-20000,30000-40000,50000-68000', 'coding_start': '12000', 'coding_end': '53000'}
+        t3.read_from_database_record(record)
+
+        t4 = Transcript()
+        record = {'strand': '+', 'exons': '10000-20000,30000-40000,50000-60000', 'coding_start': '12500', 'coding_end': '53000'}
+        t4.read_from_database_record(record)
+
+        assert helper.same_cds(t1, t2)
+        assert helper.same_cds(t1, t3)
+        assert not helper.same_cds(t2, t4)
+
 
     def test_all_have_same_cds(self):
-        pass
+        t1 = Transcript()
+        record = {'strand': '+', 'exons': '10000-20000,30000-40000,50000-60000', 'coding_start': '12000', 'coding_end': '53000'}
+        t1.read_from_database_record(record)
+
+        t2 = Transcript()
+        record = {'strand': '+', 'exons': '9000-20000,30000-40000,50000-68000', 'coding_start': '12000', 'coding_end': '53000'}
+        t2.read_from_database_record(record)
+
+        t3 = Transcript()
+        record = {'strand': '+', 'exons': '3000-20000,30000-40000,50000-68000', 'coding_start': '12000', 'coding_end': '53000'}
+        t3.read_from_database_record(record)
+
+        t4 = Transcript()
+        record = {'strand': '+', 'exons': '10000-20000,30000-40000,50000-60000', 'coding_start': '12500', 'coding_end': '53000'}
+        t4.read_from_database_record(record)
+
+        assert not helper.all_have_same_cds([t1, t2, t3, t4])
+        assert helper.all_have_same_cds([t1, t2, t3])
+
 
     def test_check_nms_in_refseq_db(self):
         pass
+
 
     def test_create_transcript_objects(self):
         pass
