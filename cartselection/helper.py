@@ -177,7 +177,7 @@ def select_from_multiple_candidates(transcripts, refseqscan, appris_principal, s
     sel, differenceType, decisiveCriteria = utr.utr_selection(transcripts, log)
 
     if sel is None:
-        to_missing_list(missing, log, hgncid, 'non_unique_mapping', 'Candidate templates have identical UCSC mapping; gene added to Missing List')
+        to_missing_list(missing, log, hgncid, 'non_unique_mapping', 'Candidate templates have identical mapping; gene added to Missing List')
         return cartid
 
     diff = refseqscan[sel.id]
