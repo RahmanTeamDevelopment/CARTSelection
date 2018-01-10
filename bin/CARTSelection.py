@@ -11,10 +11,11 @@ def print_info(options):
     print 'APPRIS RefSeq file:         ' + options.appr
     print 'RefSeq transcript db file:  ' + options.refsdb
     print 'RefSeqScan output file:     ' + options.refss
-    print 'Gene ID dictionary file:    ' + options.genes + '\n'
+    print 'Gene ID dictionary file:    ' + options.genes
+    print '\nCART series: ' + options.series.upper() + '\n'
 
 # Version
-ver = 'v1.6.0'
+ver = 'v1.7.0'
 
 # Script dir
 scriptdir = os.path.dirname(os.path.realpath(__file__))
@@ -27,11 +28,17 @@ parser.add_option("--appr", dest='appr', action='store', help="APPRIS file")
 parser.add_option("--refsdb", dest='refsdb', action='store', help="RefSeq transcript database file")
 parser.add_option("--refss", dest='refss', action='store', help="refseq_scan output file")
 parser.add_option("--genes", dest='genes', action='store', help="Gene ID dictionary file")
+parser.add_option("--build", dest='build', default=None, action='store', help="Genome build")
+parser.add_option("--series", dest='series', default=None, action='store', help="CART series")
 parser.add_option("--out", dest='out', action='store', help="Output file name")
 (options, args) = parser.parse_args()
 
+if options.series is None:
+    print '\nUse command line option --series to specify the CART series.\n'
+    quit()
+
 print '\n'+'='*100
-print 'CART selection script ' + ver
+print '\nCART selection script ' + ver
 
 options = helper.convert_file_names_to_absolute_path(options)
 

@@ -22,7 +22,7 @@ def process_genes(options, gene_dict, appris, appris_principal, refseq_db, refse
     sys.stdout.write('Processing genes ... ')
     sys.stdout.flush()
 
-    cartid = 0
+    cartidx = 10000
     # Iterate through HGNC IDs from input file
     for hgncid in open(options.hgnc):
 
@@ -44,8 +44,12 @@ def process_genes(options, gene_dict, appris, appris_principal, refseq_db, refse
         if transcripts is None:
             continue
 
+        # CART series and genome build
+        cartseries = options.series.upper()
+        build = refseq_db.build[-2:] if options.build is None else options.build
+
         # Select and output transcript
-        cartid = select_transcript(transcripts, refseqscan, appris_principal, selected, missing, log, hgncid, cartid)
+        cartidx = select_transcript(transcripts, refseqscan, appris_principal, selected, missing, log, hgncid, build, cartseries, cartidx)
 
     # Close output files
     selected.close()
@@ -91,16 +95,16 @@ def get_transcript_data_from_refseq_db(refseq_db, nms, missing, log, hgncid):
     return transcripts
 
 
-def select_transcript(transcripts, refseqscan, appris_principal, selected, missing, log, hgncid, cartid):
+def select_transcript(transcripts, refseqscan, appris_principal, selected, missing, log, hgncid, build, cartseries, cartidx):
     """Select transcript"""
 
     # Single transcript to select
     if len(transcripts) == 1:
-        cartid += 1
-        helper.output_single_transcript(transcripts, refseqscan, appris_principal, selected, log, hgncid, cartid)
-        return cartid
+        cartidx += 1
+        helper.output_single_transcript(transcripts, refseqscan, appris_principal, selected, log, hgncid, build, cartseries, cartidx)
+        return cartidx
 
     # Multiple transcripts to select from
     elif len(transcripts) > 1:
-        return helper.select_from_multiple_candidates(transcripts, refseqscan, appris_principal, selected, missing, log, hgncid, cartid)
+        return helper.select_from_multiple_candidates(transcripts, refseqscan, appris_principal, selected, missing, log, hgncid, build, cartseries, cartidx)
 

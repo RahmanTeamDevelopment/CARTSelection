@@ -146,7 +146,7 @@ def get_transcripts_with_consistent_hgncid(transcripts, hgncid, missing, log):
     return transcripts
 
 
-def output_single_transcript(transcripts, refseqscan, appris_principal, selected, log, hgncid, cartid):
+def output_single_transcript(transcripts, refseqscan, appris_principal, selected, log, hgncid, build, cartseries, cartidx):
     """Output single selected transcript"""
 
     log.write('\nSELECTED TRANSCRIPT: ' + transcripts[0].id + ' (The only transcript to select)\n')
@@ -162,23 +162,23 @@ def output_single_transcript(transcripts, refseqscan, appris_principal, selected
                 cigar_info.append('Ex{}:{}'.format(i + 1, tmp[i]))
         cigar_str = ','.join(cigar_info) if len(cigar_info) > 0 else '.'
 
-    cid = 'CART' + '0' * (5 - len(str(cartid))) + str(cartid)
+    cid = generate_cart_id(build, cartseries, cartidx)
     log.write('Added as ' + cid + '\n')
     selected.write('\t'.join([hgncid, cid, transcripts[0].id, transcripts[0].version, appris_principal[transcripts[0].id], 'not_required', 'not_required', diff, cigar_str]) + '\n')
 
 
-def select_from_multiple_candidates(transcripts, refseqscan, appris_principal, selected, missing, log, hgncid, cartid):
+def select_from_multiple_candidates(transcripts, refseqscan, appris_principal, selected, missing, log, hgncid, build, cartseries, cartidx):
     """Select from multiple transcript candidates"""
 
     if not all_have_same_cds(transcripts):
         to_missing_list(missing, log, hgncid, 'coding_mismatch', 'Not all of these transcripts have the same CDS;  gene added to Missing List')
-        return cartid
+        return cartidx
 
     sel, differenceType, decisiveCriteria = utr.utr_selection(transcripts, log)
 
     if sel is None:
         to_missing_list(missing, log, hgncid, 'non_unique_mapping', 'Candidate templates have identical mapping; gene added to Missing List')
-        return cartid
+        return cartidx
 
     diff = refseqscan[sel.id]
 
@@ -194,13 +194,19 @@ def select_from_multiple_candidates(transcripts, refseqscan, appris_principal, s
 
 
     log.write('SELECTED TRANSCRIPT: ' + sel.id + ' (Selected by UTR criteria)\n')
-    cartid += 1
-    cid = 'CART' + '0' * (5 - len(str(cartid))) + str(cartid)
+    cartidx += 1
+    cid = generate_cart_id(build, cartseries, cartidx)
     log.write('Added as ' + cid + '\n')
 
     selected.write('\t'.join([hgncid, cid, sel.id, sel.version, appris_principal[sel.id], differenceType, decisiveCriteria, diff, cigar_str]) + '\n')
 
-    return cartid
+    return cartidx
+
+
+def generate_cart_id(build, cartseries, cartidx):
+    """Generate CART ID"""
+
+    return 'CART{}{}{}'.format(build, cartseries, cartidx)
 
 
 def all_have_same_cds(transcripts):
